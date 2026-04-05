@@ -8,13 +8,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(dds_gateway
     src/main.cpp
+    src/gateway.cpp
     src/config.cpp
     src/dds_input_adapter.cpp
     src/processor.cpp
     src/router.cpp
     src/tcp_output_adapter.cpp
     src/mqtt_output_adapter.cpp
-    src/pipeline.cpp
 )
 
 # TODO: link actual DDS / MQTT libraries when available
