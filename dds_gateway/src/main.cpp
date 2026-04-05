@@ -25,7 +25,6 @@ int main(int argc, char* argv[]) {
         config_path = argv[1];
     }
 
-    // 1) Load config
     gateway::GatewayConfig cfg;
     try {
         cfg = gateway::GatewayConfig::load(config_path);
@@ -34,45 +33,44 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // 2) Build pipeline (owns the queues)
     gateway::Pipeline pipeline(cfg.queue_size);
 
-    // 3) Input adapter
+    // Input
     auto input = std::make_shared<gateway::DdsInputAdapter>(
         cfg.dds, pipeline.input_queue());
 
-    // 4) Processor
+    // Processor
     auto processor = std::make_shared<gateway::Processor>(
-        pipeline.input_queue(), pipeline.processed_queue());
+        pipeline.input_queue(), pipeline.output_queue());
 
-    processor->set_filter([](gateway::Message& msg) -> bool {
+    processor->set_filter([](const gateway::Message& msg) -> bool {
         return !msg.payload.empty();
     });
 
-    processor->set_transform([](gateway::Message& msg) -> bool {
-        // TODO: implement actual business logic
-        return true;
+    processor->set_transform([](const gateway::Message& msg) -> gateway::Message {
+        gateway::Message out = msg;
+        // TODO: implement actual business logic on 'out'
+        return out;
     });
 
-    // 5) Router + outputs
-    auto router = std::make_shared<gateway::Router>();
-    router->set_rules(cfg.routes);
+    // Router
+    auto router = std::make_shared<gateway::Router>(pipeline.output_queue());
 
     if (cfg.tcp_enabled) {
-        router->register_output("tcp",
+        router->add_output("tcp",
             std::make_shared<gateway::TcpOutputAdapter>(cfg.tcp));
     }
     if (cfg.mqtt_enabled) {
-        router->register_output("mqtt",
+        router->add_output("mqtt",
             std::make_shared<gateway::MqttOutputAdapter>(cfg.mqtt));
     }
+    router->set_routes(cfg.routes);
 
-    // 6) Assemble
+    // Assemble & run
     pipeline.set_input(input);
     pipeline.set_processor(processor);
     pipeline.set_router(router);
 
-    // 7) Run
     if (!pipeline.start()) {
         std::cerr << "Failed to start pipeline" << std::endl;
         return 1;

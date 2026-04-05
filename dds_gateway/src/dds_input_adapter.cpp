@@ -5,9 +5,9 @@
 namespace gateway {
 
 DdsInputAdapter::DdsInputAdapter(const DdsConfig& config,
-                                 ThreadSafeQueue<Message>& output_queue)
+                                 BlockingQueue<Message>& input_queue)
     : config_(config)
-    , output_queue_(output_queue)
+    , input_queue_(input_queue)
     , running_(false) {}
 
 DdsInputAdapter::~DdsInputAdapter() {
@@ -36,7 +36,7 @@ void DdsInputAdapter::subscribe_loop() {
         //   auto samples = data_reader->take();
         //   for (auto& s : samples) {
         //       Message msg(topic, serialize(s), "dds");
-        //       output_queue_.push(msg);
+        //       input_queue_.push(msg);
         //   }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

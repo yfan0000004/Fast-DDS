@@ -1,5 +1,5 @@
-#ifndef GATEWAY_THREAD_SAFE_QUEUE_H
-#define GATEWAY_THREAD_SAFE_QUEUE_H
+#ifndef GATEWAY_BLOCKING_QUEUE_H
+#define GATEWAY_BLOCKING_QUEUE_H
 
 #include <queue>
 #include <mutex>
@@ -8,11 +8,12 @@
 namespace gateway {
 
 template <typename T>
-class ThreadSafeQueue {
+class BlockingQueue {
 public:
-    explicit ThreadSafeQueue(size_t max_size = 4096)
+    explicit BlockingQueue(size_t max_size = 4096)
         : max_size_(max_size), stopped_(false) {}
 
+    // Blocks until space available. Returns false if stopped.
     bool push(const T& item) {
         std::unique_lock<std::mutex> lock(mutex_);
         cv_full_.wait(lock, [this] { return queue_.size() < max_size_ || stopped_; });
@@ -22,6 +23,7 @@ public:
         return true;
     }
 
+    // Blocks until item available. Returns false if stopped and empty.
     bool pop(T& item) {
         std::unique_lock<std::mutex> lock(mutex_);
         cv_empty_.wait(lock, [this] { return !queue_.empty() || stopped_; });
@@ -55,4 +57,4 @@ private:
 
 } // namespace gateway
 
-#endif // GATEWAY_THREAD_SAFE_QUEUE_H
+#endif // GATEWAY_BLOCKING_QUEUE_H

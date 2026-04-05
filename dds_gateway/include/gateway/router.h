@@ -2,6 +2,7 @@
 #define GATEWAY_ROUTER_H
 
 #include "gateway/message.h"
+#include "gateway/blocking_queue.h"
 #include "gateway/output_adapter.h"
 #include "gateway/config.h"
 
@@ -9,26 +10,37 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <thread>
+#include <atomic>
 
 namespace gateway {
 
-// Routes each message to one or more OutputAdapters based on RouteRules.
-// Matching order: first exact match wins; "*" is the fallback.
+// Router owns the output_queue, consumes messages from it,
+// and dispatches to the correct OutputAdapter based on RouteRules.
 class Router {
 public:
-    void register_output(const std::string& name, std::shared_ptr<OutputAdapter> adapter);
-    void set_rules(const std::vector<RouteRule>& rules);
+    explicit Router(BlockingQueue<Message>& output_queue);
+    ~Router();
+
+    // One-shot setup: register named outputs + set route rules together.
+    void add_output(const std::string& name, std::shared_ptr<OutputAdapter> adapter);
+    void set_routes(const std::vector<RouteRule>& rules);
 
     bool connect_all();
     void disconnect_all();
 
-    // Dispatch a message: find matching outputs by topic, send to each.
-    // Returns false if ALL matched sends fail.
-    bool dispatch(const Message& msg);
+    bool start();
+    void stop();
 
 private:
+    void dispatch_loop();
+    bool dispatch(const Message& msg);
+
+    BlockingQueue<Message>& output_queue_;
     std::map<std::string, std::shared_ptr<OutputAdapter>> outputs_;
     std::vector<RouteRule> rules_;
+    std::thread worker_;
+    std::atomic<bool> running_;
 };
 
 } // namespace gateway

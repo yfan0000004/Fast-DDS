@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdint>
 #include <chrono>
+#include <functional>
 
 namespace gateway {
 
@@ -27,6 +28,9 @@ struct Message {
                   std::chrono::system_clock::now().time_since_epoch()).count()))
         , source_id(source_id) {}
 };
+
+using FilterFunc    = std::function<bool(const Message&)>;
+using TransformFunc = std::function<Message(const Message&)>;
 
 } // namespace gateway
 

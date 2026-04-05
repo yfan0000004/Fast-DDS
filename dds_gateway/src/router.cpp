@@ -3,12 +3,20 @@
 
 namespace gateway {
 
-void Router::register_output(const std::string& name,
-                             std::shared_ptr<OutputAdapter> adapter) {
+Router::Router(BlockingQueue<Message>& output_queue)
+    : output_queue_(output_queue)
+    , running_(false) {}
+
+Router::~Router() {
+    stop();
+}
+
+void Router::add_output(const std::string& name,
+                        std::shared_ptr<OutputAdapter> adapter) {
     outputs_[name] = adapter;
 }
 
-void Router::set_rules(const std::vector<RouteRule>& rules) {
+void Router::set_routes(const std::vector<RouteRule>& rules) {
     rules_ = rules;
 }
 
@@ -25,6 +33,30 @@ bool Router::connect_all() {
 void Router::disconnect_all() {
     for (auto& kv : outputs_) {
         kv.second->disconnect();
+    }
+}
+
+bool Router::start() {
+    running_ = true;
+    worker_ = std::thread(&Router::dispatch_loop, this);
+    return true;
+}
+
+void Router::stop() {
+    running_ = false;
+    output_queue_.stop();
+    if (worker_.joinable()) {
+        worker_.join();
+    }
+}
+
+void Router::dispatch_loop() {
+    Message msg;
+    while (running_) {
+        if (!output_queue_.pop(msg)) {
+            break;
+        }
+        dispatch(msg);
     }
 }
 
@@ -49,7 +81,7 @@ bool Router::dispatch(const Message& msg) {
         }
 
         if (rule.topic_pattern != "*") {
-            break; // exact match takes priority, stop searching
+            break;
         }
     }
 

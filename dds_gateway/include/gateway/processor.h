@@ -2,7 +2,7 @@
 #define GATEWAY_PROCESSOR_H
 
 #include "gateway/message.h"
-#include "gateway/thread_safe_queue.h"
+#include "gateway/blocking_queue.h"
 
 #include <thread>
 #include <atomic>
@@ -10,16 +10,14 @@
 
 namespace gateway {
 
-using ProcessFunc = std::function<bool(Message&)>;
-
 class Processor {
 public:
-    Processor(ThreadSafeQueue<Message>& input_queue,
-              ThreadSafeQueue<Message>& output_queue);
+    Processor(BlockingQueue<Message>& input_queue,
+              BlockingQueue<Message>& output_queue);
     ~Processor();
 
-    void set_filter(ProcessFunc filter);
-    void set_transform(ProcessFunc transform);
+    void set_filter(FilterFunc filter);
+    void set_transform(TransformFunc transform);
 
     bool start();
     void stop();
@@ -27,10 +25,10 @@ public:
 private:
     void run();
 
-    ThreadSafeQueue<Message>& input_queue_;
-    ThreadSafeQueue<Message>& output_queue_;
-    ProcessFunc filter_;
-    ProcessFunc transform_;
+    BlockingQueue<Message>& input_queue_;
+    BlockingQueue<Message>& output_queue_;
+    FilterFunc filter_;
+    TransformFunc transform_;
     std::thread worker_;
     std::atomic<bool> running_;
 };

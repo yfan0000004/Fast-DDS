@@ -2,7 +2,7 @@
 #define GATEWAY_DDS_INPUT_ADAPTER_H
 
 #include "gateway/input_adapter.h"
-#include "gateway/thread_safe_queue.h"
+#include "gateway/blocking_queue.h"
 #include "gateway/message.h"
 
 #include <string>
@@ -21,7 +21,7 @@ struct DdsConfig {
 
 class DdsInputAdapter : public InputAdapter {
 public:
-    DdsInputAdapter(const DdsConfig& config, ThreadSafeQueue<Message>& output_queue);
+    DdsInputAdapter(const DdsConfig& config, BlockingQueue<Message>& input_queue);
     ~DdsInputAdapter();
 
     bool start() override;
@@ -31,7 +31,7 @@ private:
     void subscribe_loop();
 
     DdsConfig config_;
-    ThreadSafeQueue<Message>& output_queue_;
+    BlockingQueue<Message>& input_queue_;
     std::thread worker_;
     std::atomic<bool> running_;
 };

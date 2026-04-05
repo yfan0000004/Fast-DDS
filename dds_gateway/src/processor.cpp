@@ -3,8 +3,8 @@
 
 namespace gateway {
 
-Processor::Processor(ThreadSafeQueue<Message>& input_queue,
-                     ThreadSafeQueue<Message>& output_queue)
+Processor::Processor(BlockingQueue<Message>& input_queue,
+                     BlockingQueue<Message>& output_queue)
     : input_queue_(input_queue)
     , output_queue_(output_queue)
     , running_(false) {}
@@ -13,11 +13,11 @@ Processor::~Processor() {
     stop();
 }
 
-void Processor::set_filter(ProcessFunc filter) {
+void Processor::set_filter(FilterFunc filter) {
     filter_ = filter;
 }
 
-void Processor::set_transform(ProcessFunc transform) {
+void Processor::set_transform(TransformFunc transform) {
     transform_ = transform;
 }
 
@@ -46,11 +46,8 @@ void Processor::run() {
             continue;
         }
 
-        if (transform_) {
-            transform_(msg);
-        }
-
-        output_queue_.push(msg);
+        Message out = transform_ ? transform_(msg) : msg;
+        output_queue_.push(out);
     }
 }
 
