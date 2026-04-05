@@ -1,0 +1,28 @@
+{
+    "dds": {
+        "domain_id": 0,
+        "topics": ["sensor/imu", "sensor/lidar"]
+    },
+    "outputs": {
+        "tcp": {
+            "enabled": true,
+            "host": "127.0.0.1",
+            "port": 9000,
+            "reconnect_interval_ms": 3000
+        },
+        "mqtt": {
+            "enabled": true,
+            "broker_host": "127.0.0.1",
+            "broker_port": 1883,
+            "client_id": "dds_gateway",
+            "qos": 1,
+            "reconnect_interval_ms": 3000
+        }
+    },
+    "routes": [
+        {"topic": "sensor/imu",   "output": "tcp"},
+        {"topic": "sensor/lidar", "output": "mqtt"},
+        {"topic": "*",            "output": "tcp"}
+    ],
+    "queue_size": 4096
+}
