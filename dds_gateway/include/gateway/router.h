@@ -15,14 +15,11 @@
 
 namespace gateway {
 
-// Router owns the output_queue, consumes messages from it,
-// and dispatches to the correct OutputAdapter based on RouteRules.
 class Router {
 public:
-    explicit Router(BlockingQueue<Message>& output_queue);
+    explicit Router(std::shared_ptr<BlockingQueue<Message>> output_queue);
     ~Router();
 
-    // One-shot setup: register named outputs + set route rules together.
     void add_output(const std::string& name, std::shared_ptr<OutputAdapter> adapter);
     void set_routes(const std::vector<RouteRule>& rules);
 
@@ -36,7 +33,7 @@ private:
     void dispatch_loop();
     bool dispatch(const Message& msg);
 
-    BlockingQueue<Message>& output_queue_;
+    std::shared_ptr<BlockingQueue<Message>> output_queue_;
     std::map<std::string, std::shared_ptr<OutputAdapter>> outputs_;
     std::vector<RouteRule> rules_;
     std::thread worker_;

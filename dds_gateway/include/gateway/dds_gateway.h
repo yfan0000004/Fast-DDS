@@ -1,5 +1,5 @@
-#ifndef GATEWAY_GATEWAY_H
-#define GATEWAY_GATEWAY_H
+#ifndef GATEWAY_DDS_GATEWAY_H
+#define GATEWAY_DDS_GATEWAY_H
 
 #include "gateway/blocking_queue.h"
 #include "gateway/message.h"
@@ -13,22 +13,22 @@
 
 namespace gateway {
 
-// Gateway is the single entry point of the entire application.
+// DdsGateway is the single entry point of the application.
 // It reads config, creates all internal components, and manages their lifecycle.
 //
 // Usage:
-//   Gateway gw;
+//   DdsGateway gw;
 //   gw.init("config.json");
 //   gw.start();
 //   // ... wait for signal ...
 //   gw.stop();
-class Gateway {
+class DdsGateway {
 public:
-    Gateway();
-    ~Gateway();
+    DdsGateway();
+    ~DdsGateway();
 
-    Gateway(const Gateway&) = delete;
-    Gateway& operator=(const Gateway&) = delete;
+    DdsGateway(const DdsGateway&) = delete;
+    DdsGateway& operator=(const DdsGateway&) = delete;
 
     bool init(const std::string& config_path);
 
@@ -41,8 +41,8 @@ public:
 private:
     GatewayConfig config_;
 
-    std::unique_ptr<BlockingQueue<Message>> input_queue_;
-    std::unique_ptr<BlockingQueue<Message>> output_queue_;
+    std::shared_ptr<BlockingQueue<Message>> input_queue_;
+    std::shared_ptr<BlockingQueue<Message>> output_queue_;
 
     std::shared_ptr<InputAdapter> input_;
     std::shared_ptr<Processor>    processor_;
@@ -53,4 +53,4 @@ private:
 
 } // namespace gateway
 
-#endif // GATEWAY_GATEWAY_H
+#endif // GATEWAY_DDS_GATEWAY_H

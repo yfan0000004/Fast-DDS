@@ -8,7 +8,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(dds_gateway
     src/main.cpp
-    src/gateway.cpp
+    src/dds_gateway.cpp
     src/config.cpp
     src/dds_input_adapter.cpp
     src/processor.cpp

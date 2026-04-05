@@ -9,6 +9,7 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+#include <memory>
 
 namespace gateway {
 
@@ -21,7 +22,8 @@ struct DdsConfig {
 
 class DdsInputAdapter : public InputAdapter {
 public:
-    DdsInputAdapter(const DdsConfig& config, BlockingQueue<Message>& input_queue);
+    DdsInputAdapter(const DdsConfig& config,
+                    std::shared_ptr<BlockingQueue<Message>> input_queue);
     ~DdsInputAdapter();
 
     bool start() override;
@@ -31,7 +33,7 @@ private:
     void subscribe_loop();
 
     DdsConfig config_;
-    BlockingQueue<Message>& input_queue_;
+    std::shared_ptr<BlockingQueue<Message>> input_queue_;
     std::thread worker_;
     std::atomic<bool> running_;
 };

@@ -1,4 +1,4 @@
-#include "gateway/gateway.h"
+#include "gateway/dds_gateway.h"
 
 #include <iostream>
 #include <csignal>
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 
     std::string config_path = (argc > 1) ? argv[1] : "config.json";
 
-    gateway::Gateway gw;
+    gateway::DdsGateway gw;
 
     if (!gw.init(config_path)) {
         return 1;

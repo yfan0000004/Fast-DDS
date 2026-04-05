@@ -7,13 +7,14 @@
 #include <thread>
 #include <atomic>
 #include <functional>
+#include <memory>
 
 namespace gateway {
 
 class Processor {
 public:
-    Processor(BlockingQueue<Message>& input_queue,
-              BlockingQueue<Message>& output_queue);
+    Processor(std::shared_ptr<BlockingQueue<Message>> input_queue,
+              std::shared_ptr<BlockingQueue<Message>> output_queue);
     ~Processor();
 
     void set_filter(FilterFunc filter);
@@ -25,8 +26,8 @@ public:
 private:
     void run();
 
-    BlockingQueue<Message>& input_queue_;
-    BlockingQueue<Message>& output_queue_;
+    std::shared_ptr<BlockingQueue<Message>> input_queue_;
+    std::shared_ptr<BlockingQueue<Message>> output_queue_;
     FilterFunc filter_;
     TransformFunc transform_;
     std::thread worker_;

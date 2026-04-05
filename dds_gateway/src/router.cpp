@@ -3,7 +3,7 @@
 
 namespace gateway {
 
-Router::Router(BlockingQueue<Message>& output_queue)
+Router::Router(std::shared_ptr<BlockingQueue<Message>> output_queue)
     : output_queue_(output_queue)
     , running_(false) {}
 
@@ -44,7 +44,7 @@ bool Router::start() {
 
 void Router::stop() {
     running_ = false;
-    output_queue_.stop();
+    output_queue_->stop();
     if (worker_.joinable()) {
         worker_.join();
     }
@@ -53,7 +53,7 @@ void Router::stop() {
 void Router::dispatch_loop() {
     Message msg;
     while (running_) {
-        if (!output_queue_.pop(msg)) {
+        if (!output_queue_->pop(msg)) {
             break;
         }
         dispatch(msg);
