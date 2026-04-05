@@ -1,4 +1,4 @@
-#include "gateway/dds_gateway.h"
+#include "gateway/manager.h"
 
 #include <iostream>
 #include <csignal>
@@ -18,17 +18,17 @@ int main(int argc, char* argv[]) {
 
     std::string config_path = (argc > 1) ? argv[1] : "config.json";
 
-    gateway::DdsGateway gw;
+    gateway::Manager mgr;
 
-    if (!gw.init(config_path)) {
+    if (!mgr.init(config_path)) {
         return 1;
     }
 
     // Optional: register custom business logic before start
-    // gw.set_filter([](const gateway::Message& msg) { ... });
-    // gw.set_transform([](const gateway::Message& msg) { ... });
+    // mgr.set_filter([](const gateway::Message& msg) { ... });
+    // mgr.set_transform([](const gateway::Message& msg) { ... });
 
-    if (!gw.start()) {
+    if (!mgr.start()) {
         return 1;
     }
 
@@ -36,6 +36,6 @@ int main(int argc, char* argv[]) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    gw.stop();
+    mgr.stop();
     return 0;
 }

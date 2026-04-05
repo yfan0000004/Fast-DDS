@@ -1,5 +1,5 @@
-#ifndef GATEWAY_DDS_GATEWAY_H
-#define GATEWAY_DDS_GATEWAY_H
+#ifndef GATEWAY_MANAGER_H
+#define GATEWAY_MANAGER_H
 
 #include "gateway/blocking_queue.h"
 #include "gateway/message.h"
@@ -13,22 +13,22 @@
 
 namespace gateway {
 
-// DdsGateway is the single entry point of the application.
+// Manager is the single entry point of the application.
 // It reads config, creates all internal components, and manages their lifecycle.
 //
 // Usage:
-//   DdsGateway gw;
-//   gw.init("config.json");
-//   gw.start();
+//   Manager mgr;
+//   mgr.init("config.json");
+//   mgr.start();
 //   // ... wait for signal ...
-//   gw.stop();
-class DdsGateway {
+//   mgr.stop();
+class Manager {
 public:
-    DdsGateway();
-    ~DdsGateway();
+    Manager();
+    ~Manager();
 
-    DdsGateway(const DdsGateway&) = delete;
-    DdsGateway& operator=(const DdsGateway&) = delete;
+    Manager(const Manager&) = delete;
+    Manager& operator=(const Manager&) = delete;
 
     bool init(const std::string& config_path);
 
@@ -53,4 +53,4 @@ private:
 
 } // namespace gateway
 
-#endif // GATEWAY_DDS_GATEWAY_H
+#endif // GATEWAY_MANAGER_H

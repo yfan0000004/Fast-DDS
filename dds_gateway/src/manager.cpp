@@ -1,4 +1,4 @@
-#include "gateway/dds_gateway.h"
+#include "gateway/manager.h"
 #include "gateway/dds_input_adapter.h"
 #include "gateway/tcp_output_adapter.h"
 #include "gateway/mqtt_output_adapter.h"
@@ -7,18 +7,18 @@
 
 namespace gateway {
 
-DdsGateway::DdsGateway()
+Manager::Manager()
     : initialized_(false) {}
 
-DdsGateway::~DdsGateway() {
+Manager::~Manager() {
     stop();
 }
 
-bool DdsGateway::init(const std::string& config_path) {
+bool Manager::init(const std::string& config_path) {
     try {
         config_ = GatewayConfig::load(config_path);
     } catch (const std::exception& e) {
-        std::cerr << "[DdsGateway] failed to load config: " << e.what() << std::endl;
+        std::cerr << "[Manager] failed to load config: " << e.what() << std::endl;
         return false;
     }
 
@@ -42,37 +42,37 @@ bool DdsGateway::init(const std::string& config_path) {
     return true;
 }
 
-void DdsGateway::set_filter(FilterFunc filter) {
+void Manager::set_filter(FilterFunc filter) {
     if (processor_) {
         processor_->set_filter(filter);
     }
 }
 
-void DdsGateway::set_transform(TransformFunc transform) {
+void Manager::set_transform(TransformFunc transform) {
     if (processor_) {
         processor_->set_transform(transform);
     }
 }
 
-bool DdsGateway::start() {
+bool Manager::start() {
     if (!initialized_) {
-        std::cerr << "[DdsGateway] not initialized, call init() first" << std::endl;
+        std::cerr << "[Manager] not initialized, call init() first" << std::endl;
         return false;
     }
 
     if (!router_->connect_all()) {
-        std::cerr << "[DdsGateway] router connect failed" << std::endl;
+        std::cerr << "[Manager] router connect failed" << std::endl;
         return false;
     }
     router_->start();
     processor_->start();
     input_->start();
 
-    std::cout << "[DdsGateway] started" << std::endl;
+    std::cout << "[Manager] started" << std::endl;
     return true;
 }
 
-void DdsGateway::stop() {
+void Manager::stop() {
     if (!initialized_) return;
 
     if (input_)     input_->stop();
@@ -80,7 +80,7 @@ void DdsGateway::stop() {
     if (router_)    router_->stop();
     if (router_)    router_->disconnect_all();
 
-    std::cout << "[DdsGateway] stopped" << std::endl;
+    std::cout << "[Manager] stopped" << std::endl;
 }
 
 } // namespace gateway
