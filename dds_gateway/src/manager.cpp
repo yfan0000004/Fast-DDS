@@ -22,8 +22,8 @@ bool Manager::init(const std::string& config_path) {
         return false;
     }
 
-    input_queue_  = std::make_shared<BlockingQueue<Message>>(config_.queue_size);
-    output_queue_ = std::make_shared<BlockingQueue<Message>>(config_.queue_size);
+    input_queue_  = std::make_shared<BlockingQueue<MessagePtr>>(config_.queue_size);
+    output_queue_ = std::make_shared<BlockingQueue<MessagePtr>>(config_.queue_size);
 
     input_ = std::make_shared<DdsInputAdapter>(config_.dds, input_queue_);
 
@@ -40,6 +40,10 @@ bool Manager::init(const std::string& config_path) {
 
     initialized_ = true;
     return true;
+}
+
+void Manager::set_input(std::shared_ptr<InputAdapter> input) {
+    input_ = input;
 }
 
 void Manager::set_filter(FilterFunc filter) {

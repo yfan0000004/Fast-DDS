@@ -13,8 +13,8 @@ namespace gateway {
 
 class Processor {
 public:
-    Processor(std::shared_ptr<BlockingQueue<Message>> input_queue,
-              std::shared_ptr<BlockingQueue<Message>> output_queue);
+    Processor(std::shared_ptr<BlockingQueue<MessagePtr>> input_queue,
+              std::shared_ptr<BlockingQueue<MessagePtr>> output_queue);
     ~Processor();
 
     void set_filter(FilterFunc filter);
@@ -26,8 +26,8 @@ public:
 private:
     void run();
 
-    std::shared_ptr<BlockingQueue<Message>> input_queue_;
-    std::shared_ptr<BlockingQueue<Message>> output_queue_;
+    std::shared_ptr<BlockingQueue<MessagePtr>> input_queue_;
+    std::shared_ptr<BlockingQueue<MessagePtr>> output_queue_;
     FilterFunc filter_;
     TransformFunc transform_;
     std::thread worker_;

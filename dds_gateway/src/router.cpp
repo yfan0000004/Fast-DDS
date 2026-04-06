@@ -3,7 +3,7 @@
 
 namespace gateway {
 
-Router::Router(std::shared_ptr<BlockingQueue<Message>> output_queue)
+Router::Router(std::shared_ptr<BlockingQueue<MessagePtr>> output_queue)
     : output_queue_(output_queue)
     , running_(false) {}
 
@@ -51,7 +51,7 @@ void Router::stop() {
 }
 
 void Router::dispatch_loop() {
-    Message msg;
+    MessagePtr msg;
     while (running_) {
         if (!output_queue_->pop(msg)) {
             break;
@@ -60,12 +60,12 @@ void Router::dispatch_loop() {
     }
 }
 
-bool Router::dispatch(const Message& msg) {
+bool Router::dispatch(const MessagePtr& msg) {
     bool any_ok = false;
     bool matched = false;
 
     for (const auto& rule : rules_) {
-        if (rule.topic_pattern != "*" && rule.topic_pattern != msg.topic) {
+        if (rule.topic_pattern != "*" && rule.topic_pattern != msg->topic) {
             continue;
         }
 
@@ -76,7 +76,7 @@ bool Router::dispatch(const Message& msg) {
         if (it->second->send(msg)) {
             any_ok = true;
         } else {
-            std::cerr << "[Router] send failed: topic=" << msg.topic
+            std::cerr << "[Router] send failed: topic=" << msg->topic
                       << " output=" << rule.output_name << std::endl;
         }
 
@@ -86,7 +86,7 @@ bool Router::dispatch(const Message& msg) {
     }
 
     if (!matched) {
-        std::cerr << "[Router] no route for topic: " << msg.topic << std::endl;
+        std::cerr << "[Router] no route for topic: " << msg->topic << std::endl;
     }
     return any_ok;
 }

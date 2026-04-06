@@ -38,12 +38,12 @@ bool TcpOutputAdapter::connect() {
     return true;
 }
 
-bool TcpOutputAdapter::send(const Message& msg) {
+bool TcpOutputAdapter::send(const MessagePtr& msg) {
     if (socket_fd_ < 0 && !try_reconnect()) {
         return false;
     }
 
-    uint32_t len = static_cast<uint32_t>(msg.payload.size());
+    uint32_t len = static_cast<uint32_t>(msg->payload.size());
     uint32_t net_len = htonl(len);
 
     ssize_t n = ::send(socket_fd_, &net_len, sizeof(net_len), MSG_NOSIGNAL);
@@ -52,8 +52,8 @@ bool TcpOutputAdapter::send(const Message& msg) {
         return false;
     }
 
-    n = ::send(socket_fd_, msg.payload.data(), msg.payload.size(), MSG_NOSIGNAL);
-    return n == static_cast<ssize_t>(msg.payload.size());
+    n = ::send(socket_fd_, msg->payload.data(), msg->payload.size(), MSG_NOSIGNAL);
+    return n == static_cast<ssize_t>(msg->payload.size());
 }
 
 void TcpOutputAdapter::disconnect() {

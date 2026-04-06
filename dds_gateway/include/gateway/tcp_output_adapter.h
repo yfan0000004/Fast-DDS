@@ -20,7 +20,7 @@ public:
     ~TcpOutputAdapter();
 
     bool connect() override;
-    bool send(const Message& msg) override;
+    bool send(const MessagePtr& msg) override;
     void disconnect() override;
 
 private:

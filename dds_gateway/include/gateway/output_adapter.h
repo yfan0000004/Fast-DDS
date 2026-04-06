@@ -9,7 +9,7 @@ class OutputAdapter {
 public:
     virtual ~OutputAdapter() {}
     virtual bool connect() = 0;
-    virtual bool send(const Message& msg) = 0;
+    virtual bool send(const MessagePtr& msg) = 0;
     virtual void disconnect() = 0;
 };
 

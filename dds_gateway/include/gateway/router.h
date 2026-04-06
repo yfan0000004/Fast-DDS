@@ -17,7 +17,7 @@ namespace gateway {
 
 class Router {
 public:
-    explicit Router(std::shared_ptr<BlockingQueue<Message>> output_queue);
+    explicit Router(std::shared_ptr<BlockingQueue<MessagePtr>> output_queue);
     ~Router();
 
     void add_output(const std::string& name, std::shared_ptr<OutputAdapter> adapter);
@@ -31,9 +31,9 @@ public:
 
 private:
     void dispatch_loop();
-    bool dispatch(const Message& msg);
+    bool dispatch(const MessagePtr& msg);
 
-    std::shared_ptr<BlockingQueue<Message>> output_queue_;
+    std::shared_ptr<BlockingQueue<MessagePtr>> output_queue_;
     std::map<std::string, std::shared_ptr<OutputAdapter>> outputs_;
     std::vector<RouteRule> rules_;
     std::thread worker_;

@@ -5,7 +5,7 @@
 namespace gateway {
 
 DdsInputAdapter::DdsInputAdapter(const DdsConfig& config,
-                                 std::shared_ptr<BlockingQueue<Message>> input_queue)
+                                 std::shared_ptr<BlockingQueue<MessagePtr>> input_queue)
     : config_(config)
     , input_queue_(input_queue)
     , running_(false) {}
@@ -32,10 +32,12 @@ void DdsInputAdapter::stop() {
 void DdsInputAdapter::subscribe_loop() {
     while (running_) {
         // TODO: replace with actual DDS wait-set / take() call
-        // Pseudocode:
+        // Example for multi-IDL:
         //   auto samples = data_reader->take();
         //   for (auto& s : samples) {
-        //       Message msg(topic, serialize(s), "dds");
+        //       auto msg = std::make_shared<Message>(
+        //           topic, s.type_name(), serialize(s), "dds");
+        //       msg->properties["qos"] = "reliable";
         //       input_queue_->push(msg);
         //   }
 

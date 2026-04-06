@@ -3,8 +3,8 @@
 
 namespace gateway {
 
-Processor::Processor(std::shared_ptr<BlockingQueue<Message>> input_queue,
-                     std::shared_ptr<BlockingQueue<Message>> output_queue)
+Processor::Processor(std::shared_ptr<BlockingQueue<MessagePtr>> input_queue,
+                     std::shared_ptr<BlockingQueue<MessagePtr>> output_queue)
     : input_queue_(input_queue)
     , output_queue_(output_queue)
     , running_(false) {}
@@ -36,7 +36,7 @@ void Processor::stop() {
 }
 
 void Processor::run() {
-    Message msg;
+    MessagePtr msg;
     while (running_) {
         if (!input_queue_->pop(msg)) {
             break;
@@ -46,7 +46,7 @@ void Processor::run() {
             continue;
         }
 
-        Message out = transform_ ? transform_(msg) : msg;
+        MessagePtr out = transform_ ? transform_(msg) : msg;
         output_queue_->push(out);
     }
 }

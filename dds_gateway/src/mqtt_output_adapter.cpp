@@ -23,7 +23,7 @@ bool MqttOutputAdapter::connect() {
     return true;
 }
 
-bool MqttOutputAdapter::send(const Message& msg) {
+bool MqttOutputAdapter::send(const MessagePtr& msg) {
     if (!client_handle_ && !try_reconnect()) {
         return false;
     }
@@ -31,10 +31,10 @@ bool MqttOutputAdapter::send(const Message& msg) {
     // TODO: replace with actual MQTT publish
     // e.g.:
     //   MQTTClient_message pubmsg = MQTTClient_message_initializer;
-    //   pubmsg.payload = (void*)msg.payload.data();
-    //   pubmsg.payloadlen = msg.payload.size();
+    //   pubmsg.payload = (void*)msg->payload.data();
+    //   pubmsg.payloadlen = msg->payload.size();
     //   pubmsg.qos = config_.qos;
-    //   MQTTClient_publishMessage(client_handle_, msg.topic.c_str(), &pubmsg, &token);
+    //   MQTTClient_publishMessage(client_handle_, msg->topic.c_str(), &pubmsg, &token);
     return true;
 }
 

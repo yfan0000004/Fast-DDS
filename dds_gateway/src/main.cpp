@@ -24,9 +24,18 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Optional: register custom business logic before start
-    // mgr.set_filter([](const gateway::Message& msg) { ... });
-    // mgr.set_transform([](const gateway::Message& msg) { ... });
+    // Optional: replace default DDS input with custom source
+    // mgr.set_input(my_custom_adapter);
+
+    // Optional: register custom business logic
+    // mgr.set_filter([](const gateway::MessagePtr& msg) {
+    //     return msg->type_name == "sensor::IMU";
+    // });
+    // mgr.set_transform([](const gateway::MessagePtr& msg) {
+    //     auto out = std::make_shared<gateway::Message>(*msg);
+    //     out->properties["processed"] = "true";
+    //     return out;
+    // });
 
     if (!mgr.start()) {
         return 1;

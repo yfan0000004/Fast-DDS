@@ -23,7 +23,7 @@ struct DdsConfig {
 class DdsInputAdapter : public InputAdapter {
 public:
     DdsInputAdapter(const DdsConfig& config,
-                    std::shared_ptr<BlockingQueue<Message>> input_queue);
+                    std::shared_ptr<BlockingQueue<MessagePtr>> input_queue);
     ~DdsInputAdapter();
 
     bool start() override;
@@ -33,7 +33,7 @@ private:
     void subscribe_loop();
 
     DdsConfig config_;
-    std::shared_ptr<BlockingQueue<Message>> input_queue_;
+    std::shared_ptr<BlockingQueue<MessagePtr>> input_queue_;
     std::thread worker_;
     std::atomic<bool> running_;
 };

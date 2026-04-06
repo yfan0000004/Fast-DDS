@@ -27,14 +27,14 @@ public:
     ~MqttOutputAdapter();
 
     bool connect() override;
-    bool send(const Message& msg) override;
+    bool send(const MessagePtr& msg) override;
     void disconnect() override;
 
 private:
     bool try_reconnect();
 
     MqttConfig config_;
-    void* client_handle_; // opaque handle for MQTT client library
+    void* client_handle_;
 };
 
 } // namespace gateway
