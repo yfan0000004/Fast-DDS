@@ -9,6 +9,14 @@
 #include <vector>
 #include <memory>
 
+#ifdef HAS_FASTDDS
+#include <fastdds/dds/subscriber/DataReaderListener.hpp>
+#include <fastdds/dds/subscriber/DataReader.hpp>
+#include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/subscriber/Subscriber.hpp>
+namespace dds = eprosima::fastdds::dds;
+#endif
+
 namespace gateway {
 
 struct DdsConfig {
@@ -18,21 +26,21 @@ struct DdsConfig {
     DdsConfig() : domain_id(0) {}
 };
 
-// Per-topic callback handler. In real DDS this would inherit from
-// eprosima::fastdds::dds::DataReaderListener.
-// One instance per topic, all sharing the same input_queue.
-class TopicListener {
+#ifdef HAS_FASTDDS
+
+class TopicListener : public dds::DataReaderListener {
 public:
     TopicListener(const std::string& topic_name,
                   std::shared_ptr<BlockingQueue<MessagePtr>> input_queue);
 
-    // Called by DDS middleware when new data arrives on this topic.
-    void on_data_available(/* DataReader* reader */);
+    void on_data_available(dds::DataReader* reader) override;
 
 private:
     std::string topic_name_;
     std::shared_ptr<BlockingQueue<MessagePtr>> input_queue_;
 };
+
+#endif // HAS_FASTDDS
 
 class DdsInputAdapter : public InputAdapter {
 public:
@@ -47,14 +55,12 @@ private:
     DdsConfig config_;
     std::shared_ptr<BlockingQueue<MessagePtr>> input_queue_;
 
-    // One listener per topic
+#ifdef HAS_FASTDDS
+    dds::DomainParticipant* participant_;
+    dds::Subscriber* subscriber_;
+    std::vector<dds::DataReader*> readers_;
     std::vector<std::shared_ptr<TopicListener>> listeners_;
-
-    // DDS entities (opaque pointers for skeleton)
-    // In real code these would be:
-    //   DomainParticipant* participant_;
-    //   Subscriber* subscriber_;
-    //   std::vector<DataReader*> readers_;
+#endif
 };
 
 } // namespace gateway

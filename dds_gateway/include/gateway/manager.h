@@ -13,20 +13,6 @@
 
 namespace gateway {
 
-// Manager is the single entry point of the application.
-// It reads config, creates all internal components, and manages their lifecycle.
-//
-// Usage:
-//   Manager mgr;
-//   mgr.init("config.json");
-//   mgr.start();
-//   // ... wait for signal ...
-//   mgr.stop();
-//
-// To replace the default DDS input with a custom source:
-//   mgr.init("config.json");
-//   mgr.set_input(my_custom_adapter);
-//   mgr.start();
 class Manager {
 public:
     Manager();
@@ -37,10 +23,7 @@ public:
 
     bool init(const std::string& config_path);
 
-    // Override the default DDS input with any InputAdapter implementation.
-    // Must be called after init() and before start().
     void set_input(std::shared_ptr<InputAdapter> input);
-
     void set_filter(FilterFunc filter);
     void set_transform(TransformFunc transform);
 
