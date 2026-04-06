@@ -4,6 +4,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <utility>
 
 namespace gateway {
 
@@ -13,7 +14,7 @@ public:
     explicit BlockingQueue(size_t max_size = 4096)
         : max_size_(max_size), stopped_(false) {}
 
-    // Blocks until space available. Returns false if stopped.
+    // Copy push — for cases where caller retains the item.
     bool push(const T& item) {
         std::unique_lock<std::mutex> lock(mutex_);
         cv_full_.wait(lock, [this] { return queue_.size() < max_size_ || stopped_; });
@@ -23,12 +24,22 @@ public:
         return true;
     }
 
-    // Blocks until item available. Returns false if stopped and empty.
+    // Move push — preferred path, transfers ownership into the queue.
+    bool push(T&& item) {
+        std::unique_lock<std::mutex> lock(mutex_);
+        cv_full_.wait(lock, [this] { return queue_.size() < max_size_ || stopped_; });
+        if (stopped_) return false;
+        queue_.push(std::move(item));
+        cv_empty_.notify_one();
+        return true;
+    }
+
+    // Pop — moves item out of queue, transferring ownership to caller.
     bool pop(T& item) {
         std::unique_lock<std::mutex> lock(mutex_);
         cv_empty_.wait(lock, [this] { return !queue_.empty() || stopped_; });
         if (stopped_ && queue_.empty()) return false;
-        item = queue_.front();
+        item = std::move(queue_.front());
         queue_.pop();
         cv_full_.notify_one();
         return true;

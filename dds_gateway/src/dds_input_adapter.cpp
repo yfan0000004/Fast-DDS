@@ -38,7 +38,7 @@ void DdsInputAdapter::subscribe_loop() {
         //       auto msg = std::make_shared<Message>(
         //           topic, s.type_name(), serialize(s), "dds");
         //       msg->properties["qos"] = "reliable";
-        //       input_queue_->push(msg);
+        //       input_queue_->push(std::move(msg));
         //   }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

@@ -47,7 +47,7 @@ void Processor::run() {
         }
 
         MessagePtr out = transform_ ? transform_(msg) : msg;
-        output_queue_->push(out);
+        output_queue_->push(std::move(out));
     }
 }
 
