@@ -7,8 +7,6 @@
 
 #include <string>
 #include <vector>
-#include <thread>
-#include <atomic>
 #include <memory>
 
 namespace gateway {
@@ -18,6 +16,22 @@ struct DdsConfig {
     std::vector<std::string> topics;
 
     DdsConfig() : domain_id(0) {}
+};
+
+// Per-topic callback handler. In real DDS this would inherit from
+// eprosima::fastdds::dds::DataReaderListener.
+// One instance per topic, all sharing the same input_queue.
+class TopicListener {
+public:
+    TopicListener(const std::string& topic_name,
+                  std::shared_ptr<BlockingQueue<MessagePtr>> input_queue);
+
+    // Called by DDS middleware when new data arrives on this topic.
+    void on_data_available(/* DataReader* reader */);
+
+private:
+    std::string topic_name_;
+    std::shared_ptr<BlockingQueue<MessagePtr>> input_queue_;
 };
 
 class DdsInputAdapter : public InputAdapter {
@@ -30,12 +44,17 @@ public:
     void stop() override;
 
 private:
-    void subscribe_loop();
-
     DdsConfig config_;
     std::shared_ptr<BlockingQueue<MessagePtr>> input_queue_;
-    std::thread worker_;
-    std::atomic<bool> running_;
+
+    // One listener per topic
+    std::vector<std::shared_ptr<TopicListener>> listeners_;
+
+    // DDS entities (opaque pointers for skeleton)
+    // In real code these would be:
+    //   DomainParticipant* participant_;
+    //   Subscriber* subscriber_;
+    //   std::vector<DataReader*> readers_;
 };
 
 } // namespace gateway
