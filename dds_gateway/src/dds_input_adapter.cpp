@@ -1,47 +1,76 @@
 #include "gateway/dds_input_adapter.h"
+
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+
 #include <iostream>
-#include <chrono>
 
 namespace gateway {
+
+TopicListener::TopicListener(const std::string& topic_name,
+                             std::shared_ptr<BlockingQueue<MessagePtr>> input_queue)
+    : topic_name_(topic_name)
+    , input_queue_(input_queue) {}
+
+void TopicListener::on_data_available(dds::DataReader* reader) {
+    dds::SampleInfo info;
+    void* data = nullptr;
+    while (reader->take_next_sample(&data, &info) == ReturnCode_t::RETCODE_OK) {
+        if (!info.valid_data) continue;
+
+        auto msg = std::make_shared<Message>();
+        msg->topic = topic_name_;
+        msg->type_name = reader->get_topicdescription()->get_type_name();
+        // Serialize data into msg->payload according to your IDL type
+        msg->source_id = "dds";
+        input_queue_->push(std::move(msg));
+    }
+}
 
 DdsInputAdapter::DdsInputAdapter(const DdsConfig& config,
                                  std::shared_ptr<BlockingQueue<MessagePtr>> input_queue)
     : config_(config)
     , input_queue_(input_queue)
-    , running_(false) {}
+    , participant_(nullptr)
+    , subscriber_(nullptr) {}
 
 DdsInputAdapter::~DdsInputAdapter() {
     stop();
 }
 
 bool DdsInputAdapter::start() {
-    // TODO: initialize DDS participant, subscriber, data readers
-    running_ = true;
-    worker_ = std::thread(&DdsInputAdapter::subscribe_loop, this);
+    participant_ = dds::DomainParticipantFactory::get_instance()
+        ->create_participant(config_.domain_id, dds::PARTICIPANT_QOS_DEFAULT);
+    if (!participant_) return false;
+
+    subscriber_ = participant_->create_subscriber(dds::SUBSCRIBER_QOS_DEFAULT);
+    if (!subscriber_) return false;
+
+    for (const auto& topic_name : config_.topics) {
+        auto listener = std::make_shared<TopicListener>(topic_name, input_queue_);
+        listeners_.push_back(listener);
+
+        auto topic = participant_->create_topic(topic_name, "", dds::TOPIC_QOS_DEFAULT);
+        auto reader = subscriber_->create_datareader(topic, dds::DATAREADER_QOS_DEFAULT, listener.get());
+        readers_.push_back(reader);
+    }
+
     return true;
 }
 
 void DdsInputAdapter::stop() {
-    running_ = false;
-    if (worker_.joinable()) {
-        worker_.join();
+    for (auto* reader : readers_) {
+        subscriber_->delete_datareader(reader);
     }
-    // TODO: teardown DDS entities
-}
+    readers_.clear();
+    listeners_.clear();
 
-void DdsInputAdapter::subscribe_loop() {
-    while (running_) {
-        // TODO: replace with actual DDS wait-set / take() call
-        // Example for multi-IDL:
-        //   auto samples = data_reader->take();
-        //   for (auto& s : samples) {
-        //       auto msg = std::make_shared<Message>(
-        //           topic, s.type_name(), serialize(s), "dds");
-        //       msg->properties["qos"] = "reliable";
-        //       input_queue_->push(msg);
-        //   }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    if (subscriber_) {
+        participant_->delete_subscriber(subscriber_);
+        subscriber_ = nullptr;
+    }
+    if (participant_) {
+        dds::DomainParticipantFactory::get_instance()->delete_participant(participant_);
+        participant_ = nullptr;
     }
 }
 
